@@ -1,0 +1,42 @@
+/* src/components/Sidebar.css */
+.sidebar {
+  width: 120px;
+  height: 100vh;
+  background-color: #FEF7FF;
+  border-right: 1px solid #ddd;
+  padding-top: 20px;
+}
+
+.sidebar-item {
+  display: flex;
+  flex-direction: column; /* 수직 정렬을 위해 column으로 변경 */
+  align-items: center; /* 아이콘과 텍스트를 가운데 정렬 */
+  justify-content: center; /* 수직 정렬 */
+  margin: 15px 0;
+  cursor: pointer;
+}
+
+.icon-button {
+  background: none;
+  border: none;
+  color: #6c757d;
+  display: flex;
+  flex-direction: column; /* 수직 정렬을 위해 column으로 변경 */
+  align-items: center; /* 아이콘과 텍스트를 가운데 정렬 */
+  width: 100%;
+  padding-top: 10px;
+  padding-bottom: 15px;
+  cursor: pointer;
+  text-align: center; /* 텍스트를 가운데 정렬 */
+}
+
+.icon-button:hover {
+  background-color: #e9ecef;
+  border-radius: 5px;
+}
+
+.ms {
+  margin-top: 8px; /* 아이콘과 텍스트 사이 간격 */
+  font-size: 15px;
+  text-align: center; /* 텍스트를 가운데 정렬 */
+}

@@ -1,0 +1,33 @@
+/* src/components/Header.css */
+.header {
+    background-color: #FEF7FF;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-inline: 20px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+  
+  .header-icons {
+    display: flex; /* 아이콘을 가로로 정렬 */
+    align-items: center;
+  }
+  
+  .icon-button {
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+  }
+  
+  .icon-button:hover {
+    background-color: #e9ecef;
+    border-radius: 5px;
+  }
+  
+  .icon-button .mx-2 {
+    font-size: 24px; /* 아이콘 크기 조정 */
+  }
+  

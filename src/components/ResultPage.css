@@ -1,0 +1,13 @@
+/* src/components/ResultPage.css */
+.result-page {
+    height: 100vh;
+    text-align: center;
+    color: #6c757d;
+  }
+  
+  .code-container {
+    max-width: 80%;
+    margin: 20px auto;
+    text-align: left;
+  }
+  
