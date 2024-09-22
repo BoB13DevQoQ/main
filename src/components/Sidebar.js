@@ -1,32 +1,22 @@
-// src/components/Sidebar.js
 import React from 'react';
-import { FaFileUpload, FaUser, FaChartBar } from 'react-icons/fa';
-import { AiOutlinePlus } from 'react-icons/ai';
-import { CgMenu } from "react-icons/cg";
-import './Sidebar.css'; 
+import { FaFileUpload, FaChartBar } from 'react-icons/fa'; // FaUser 제거
+import { AiOutlinePlus } from 'react-icons/ai'; // CgMenu 제거
+import './Sidebar.css';
 
-function Sidebar() {
+function Sidebar({ setPage }) {
   return (
     <div className="sidebar d-flex flex-column align-items-center">
-      <button className="icon-button mb-4">
-        <CgMenu size={30} />
-      </button>
-
-      <button className="icon-button mb-4">
-        <AiOutlinePlus size={30} />
-      </button>
-
-      <button className="icon-button sidebar-item">
+      <button className="icon-button mb-4" onClick={() => setPage('upload')}>
         <FaFileUpload size={30} />
         <span className="ms">File Upload</span>
       </button>
-      
-      <button className="icon-button sidebar-item">
-        <FaUser size={30} />
-        <span className="ms">My page</span>
+
+      <button className="icon-button mb-4" onClick={() => setPage('loading')}>
+        <AiOutlinePlus size={30} />
+        <span className="ms">Add Task</span>
       </button>
-      
-      <button className="icon-button sidebar-item">
+
+      <button className="icon-button mb-4" onClick={() => setPage('result')}>
         <FaChartBar size={30} />
         <span className="ms">Reports</span>
       </button>

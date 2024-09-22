@@ -1,7 +1,42 @@
 /* src/components/FileUpload.css */
+
+/* 기존 스타일 */
 .file-upload {
-    height: 100vh;
-    text-align: center;
-    color: #6c757d;
-  }
-  
+  height: 100vh;
+  text-align: center;
+  color: #6c757d;
+}
+
+/* 코드 블록 디자인 추가 */
+/* 파일 업로드 후 코드 내용을 보여줄 때 스타일링 */
+.file-upload-container {
+  margin: 20px;
+}
+
+.file-upload-section {
+  margin-bottom: 20px;
+}
+
+.code-block {
+  background-color: #f7f7f7;
+  /* 코드 블럭 배경 색상 */
+  border: 1px solid #ddd;
+  /* 코드 블럭 테두리 */
+  padding: 10px;
+  /* 코드 블럭 내부 여백 */
+  margin-top: 10px;
+  white-space: pre-wrap;
+  /* 긴 텍스트를 줄 바꿈 */
+  word-wrap: break-word;
+  /* 단어 단위 줄 바꿈 */
+}
+
+pre {
+  margin: 0;
+  font-family: 'Courier New', Courier, monospace;
+  /* 코드 스타일 폰트 */
+  font-size: 14px;
+  /* 코드 폰트 크기 */
+  line-height: 1.5;
+  /* 코드 줄 간격 */
+}

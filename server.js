@@ -2,6 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
+const { exec } = require('child_process');
 const app = express();
 const port = 5000;
 const cors = require('cors');
@@ -12,43 +13,67 @@ app.use(cors());
 // 파일을 저장할 기본 디렉터리
 const uploadDir = path.join(__dirname, 'uploads');
 
-// 파일 저장 설정
+// 파일 저장 설정 (날짜 기반 폴더 사용)
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const token = Date.now().toString(); // 현재 시간을 토큰으로 사용
-    const userDir = path.join(uploadDir, token);
-    
-    // 토큰 이름으로 폴더 생성
+    const userDir = path.join(uploadDir, new Date().toISOString().replace(/:/g, '-'));
     if (!fs.existsSync(userDir)) {
       fs.mkdirSync(userDir, { recursive: true });
     }
-
-    cb(null, userDir); // 파일 저장 경로
+    cb(null, userDir); // 파일 저장 경로 반환
   },
   filename: (req, file, cb) => {
+    console.log(`파일 업로드 중: ${file.originalname}`);
     cb(null, file.originalname); // 원본 파일명으로 저장
   }
 });
 
-const upload = multer({ storage: storage });
+// 두 개의 파일을 동시에 처리하도록 설정
+const upload = multer({
+  storage: storage,
+  limits: { files: 2 }, // 파일 개수를 2개로 제한 (Dockerfile과 main.c)
+}).array('files', 2); // 최대 두 개의 파일을 허용
 
 // 파일 업로드 라우트
-app.post('/upload', upload.single('file'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: '파일이 업로드되지 않았습니다.' });
-  }
-  res.json({ message: 'File uploaded successfully', path: req.file.path });
-});
-
-// 파일 내용 가져오기 라우트
-app.get('/file-content', (req, res) => {
-  const filePath = req.query.path; // 클라이언트에서 파일 경로를 쿼리로 전달받음
-
-  fs.readFile(filePath, 'utf8', (err, data) => {
-    if (err) {
-      return res.status(500).send("파일을 읽는 중 오류가 발생했습니다.");
+app.post('/upload', (req, res) => {
+  upload(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      return res.status(400).json({ error: '파일 업로드 오류: 두 개의 파일만 업로드 가능합니다.' });
+    } else if (err) {
+      return res.status(400).json({ error: err.message });
     }
-    res.send(data); // 파일 내용을 텍스트로 반환
+
+    const userDir = path.dirname(req.files[0].path); // 파일이 저장된 폴더 경로 추출
+    const uploadedFiles = fs.readdirSync(userDir);   // 업로드된 파일 목록 확인
+
+    console.log(`업로드된 파일 경로: ${userDir}`);
+    console.log(`업로드된 파일 목록:`, uploadedFiles); // 업로드된 파일 확인을 위한 로그 출력
+
+    // 파일 이름 검사 (대소문자 구분 없이 검사)
+    const dockerfileExists = uploadedFiles.some(file => file.toLowerCase() === 'dockerfile');
+    const mainCExists = uploadedFiles.some(file => file.toLowerCase() === 'main.c');
+
+    if (!dockerfileExists || !mainCExists) {
+      return res.status(400).json({ error: 'Dockerfile과 main.c 파일이 필요합니다.' });
+    }
+
+    // Dockerfile을 통한 Docker 빌드 및 실행
+    const containerName = `container_${new Date().toISOString().replace(/[:.]/g, '-').toLowerCase()}`;
+    const dockerBuildCommand = `docker build -t ${containerName}_image ${userDir}`;
+    const dockerRunCommand = `docker run -d --name ${containerName} ${containerName}_image`;
+
+    exec(dockerBuildCommand, (buildErr, buildStdout, buildStderr) => {
+      if (buildErr) {
+        console.error(`Docker 이미지 빌드 중 오류 발생: ${buildErr}`);
+        return res.status(500).json({ error: 'Docker 이미지 빌드 중 오류가 발생했습니다.', log: buildStderr });
+      }
+      exec(dockerRunCommand, (runErr, runStdout, runStderr) => {
+        if (runErr) {
+          return res.status(500).json({ error: 'Docker 컨테이너 실행 중 오류가 발생했습니다.', log: runStderr });
+        }
+        res.json({ message: '컨테이너가 성공적으로 실행되었습니다.', log: runStdout });
+      });
+    });
   });
 });
 
