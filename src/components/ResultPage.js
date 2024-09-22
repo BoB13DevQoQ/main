@@ -2,29 +2,27 @@ import React, { useState, useEffect } from 'react';
 import './ResultPage.css';
 
 function ResultPage({ uploadInfo }) {
-  const [codeString, setCodeString] = useState('');
-  const [log, setLog] = useState(''); // Docker 로그 저장
+  // 업로드된 파일 경로가 있을 경우 서버에서 내용을 가져오는 로직
+  const [codeString, setCodeString] = React.useState('');
 
-  useEffect(() => {
-    if (uploadInfo && uploadInfo.files) {
+  React.useEffect(() => {
+    if (uploadInfo && uploadInfo.path) {
       // 서버에서 업로드된 파일의 내용을 fetch로 가져옴
-      const filePath = `${uploadInfo.directory}/${uploadInfo.files[0]}`; // 첫 번째 파일 경로 가져오기
-      fetch(`http://localhost:5000/file-content?path=${filePath}`)
+      fetch(`http://localhost:5000/file-content?path=${uploadInfo.path}`)
         .then((response) => response.text())
         .then((data) => setCodeString(data))
         .catch((error) => console.error("파일 내용을 불러오는 중 오류 발생:", error));
-
-      // Docker 실행 로그 가져오기
-      setLog(uploadInfo.log);
     }
   }, [uploadInfo]);
 
   return (
     <div className="result-page p-3">
-      <h4>Uploaded File Code</h4>
+      <h4>Uploaded Files</h4>
       <div className="code-container">
         {codeString ? (
-          <pre>{codeString}</pre>
+          <SyntaxHighlighter language="c" style={solarizedlight}>
+            {codeString}
+          </SyntaxHighlighter>
         ) : (
           <p>파일을 불러올 수 없습니다. 파일을 업로드하세요.</p>
         )}
