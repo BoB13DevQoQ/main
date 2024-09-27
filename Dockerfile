@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y build-essential
 COPY . .
 
 # main.c 컴파일
-RUN gcc -o main main.c
+RUN gcc -o test_target_code test_target_code.c
 
 # 실행 명령
-CMD ["./main"]
+CMD ["./test_target_code"]

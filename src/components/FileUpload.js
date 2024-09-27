@@ -4,20 +4,33 @@ import './FileUpload.css';
 function FileUpload({ onUploadComplete, setPage }) {
   const [dockerfile, setDockerfile] = useState(null);
   const [mainCFile, setMainCFile] = useState(null);
+  const [otherFiles, setOtherFiles] = useState([]);
   const [dockerfileContent, setDockerfileContent] = useState('');
   const [mainCFileContent, setMainCFileContent] = useState('');
+  const [uploadedItems, setUploadedItems] = useState([]); // 업로드된 폴더와 파일 목록
 
-  // 파일 선택 처리
+  // Dockerfile 선택 처리
   const handleDockerfileChange = (event) => {
     const file = event.target.files[0];
     setDockerfile(file);
     readFileContent(file, setDockerfileContent); // Dockerfile 내용을 읽어서 출력
   };
 
+  // main.c 파일 선택 처리
   const handleMainCChange = (event) => {
     const file = event.target.files[0];
     setMainCFile(file);
-    readFileContent(file, setMainCFileContent); // main.c 내용을 읽어서 출력
+    readFileContent(file, setMainCFileContent); // test_target_code.c 내용을 읽어서 출력
+  };
+
+  // 빌드에 필요한 파일들 선택 처리
+  const handleOtherFilesChange = (event) => {
+    const files = Array.from(event.target.files); // 여러 파일을 배열로 저장
+    setOtherFiles(files);
+
+    // 업로드된 파일과 폴더 경로를 평면 구조로 저장
+    const fileList = files.map(file => file.webkitRelativePath || file.name);
+    setUploadedItems(fileList); // 업로드된 파일 경로 저장
   };
 
   // 파일 내용을 읽어서 state에 저장
@@ -31,20 +44,20 @@ function FileUpload({ onUploadComplete, setPage }) {
 
   // 파일 업로드 처리
   const handleFileUpload = async () => {
-    // 두 개의 파일이 모두 선택되었는지 확인
+    // Dockerfile과 test_target_code.c 파일이 선택되었는지 확인
     if (!dockerfile || !mainCFile) {
-      alert("Dockerfile과 main.c 두 개의 파일을 업로드해야 합니다.");
+      alert("Dockerfile과 test_target_code.c 두 개의 파일을 업로드해야 합니다.");
       return;
     }
 
     const formData = new FormData();
     formData.append('files', dockerfile, 'Dockerfile'); // Dockerfile 명시적으로 추가
-    formData.append('files', mainCFile, 'main.c');      // main.c 명시적으로 추가
+    formData.append('files', mainCFile, 'test_target_code.c'); // test_target_code.c 명시적으로 추가
 
-    // FormData 내용 확인
-    for (let pair of formData.entries()) {
-      console.log(pair[0] + ', ' + pair[1]);
-    }
+    // 빌드에 필요한 추가 파일들을 FormData에 추가
+    otherFiles.forEach((file) => {
+      formData.append('files', file, file.webkitRelativePath || file.name); // 각 파일의 경로와 함께 FormData에 추가
+    });
 
     try {
       const response = await fetch('http://localhost:5000/upload', {
@@ -67,6 +80,8 @@ function FileUpload({ onUploadComplete, setPage }) {
   return (
     <div className="file-upload-container">
       <h3>파일 업로드</h3>
+
+      {/* Dockerfile 업로드 */}
       <div className="file-upload-section">
         <label htmlFor="dockerfile">Dockerfile 업로드</label>
         <input
@@ -82,8 +97,9 @@ function FileUpload({ onUploadComplete, setPage }) {
         )}
       </div>
 
+      {/* main.c 업로드 */}
       <div className="file-upload-section">
-        <label htmlFor="mainC">소스 코드 (main.c) 업로드</label>
+        <label htmlFor="mainC">소스 코드 (test_target_code.c) 업로드</label>
         <input
           type="file"
           id="mainC"
@@ -91,8 +107,30 @@ function FileUpload({ onUploadComplete, setPage }) {
         />
         {mainCFileContent && (
           <div className="code-block">
-            <h4>main.c 파일 내용:</h4>
+            <h4>test_target_code.c 파일 내용:</h4>
             <pre>{mainCFileContent}</pre>
+          </div>
+        )}
+      </div>
+
+      {/* 빌드에 필요한 다른 파일들 업로드 */}
+      <div className="file-upload-section">
+        <label htmlFor="otherFiles">빌드에 필요한 소스 코드 및 폴더 업로드</label>
+        <input
+          type="file"
+          id="otherFiles"
+          multiple
+          webkitdirectory="" // 폴더 업로드를 허용
+          onChange={handleOtherFilesChange}
+        />
+        {uploadedItems.length > 0 && (
+          <div className="code-block">
+            <h4>업로드된 파일 및 폴더 목록:</h4>
+            <ul>
+              {uploadedItems.map((item, index) => (
+                <li key={index}>{item}</li> // 파일/폴더 경로 출력
+              ))}
+            </ul>
           </div>
         )}
       </div>
