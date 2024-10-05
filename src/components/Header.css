@@ -1,33 +1,30 @@
-/* src/components/Header.css */
-.header {
-    background-color: #FEF7FF;
-    border-bottom: 1px solid #ddd;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-inline: 20px;
-    padding-top: 5px;
-    padding-bottom: 5px;
-  }
-  
-  .header-icons {
-    display: flex; /* 아이콘을 가로로 정렬 */
-    align-items: center;
-  }
-  
-  .icon-button {
-    background: none;
-    border: none;
-    color: #6c757d;
-    cursor: pointer;
-  }
-  
-  .icon-button:hover {
-    background-color: #e9ecef;
-    border-radius: 5px;
-  }
-  
-  .icon-button .mx-2 {
-    font-size: 24px; /* 아이콘 크기 조정 */
-  }
-  
+/* Header.css */
+.header-container {
+  background-color: white;
+  padding: 10px;
+}
+
+/* User Section */
+.user-section {
+  background-color: #d4eafa;
+  border-radius: 20px;
+  margin: 10px 30px; /* 가로 패딩을 30px로 늘림 */
+  width: 200px; /* 너비를 컨텐츠에 맞게 자동으로 */
+}
+
+.user-icon {
+  font-size: 1.5rem; /* 아이콘 크기 */
+}
+
+.user-name {
+  font-size: 1.25rem; /* 텍스트 크기 */
+}
+
+/* Icon Section */
+.icon-section {
+  gap: 20px; /* 아이콘 간격 */
+}
+
+.icon {
+  font-size: 1.75rem; /* 아이콘 크기 */
+}

@@ -1,42 +1,25 @@
-/* src/components/Sidebar.css */
 .sidebar {
-  width: 120px;
-  height: 100vh;
-  background-color: #FEF7FF;
-  border-right: 1px solid #ddd;
-  padding-top: 20px;
-}
-
-.sidebar-item {
+  width: 330px;
+  background-color: #5886de;
+  padding: 20px;
+  color: white;
   display: flex;
-  flex-direction: column; /* 수직 정렬을 위해 column으로 변경 */
-  align-items: center; /* 아이콘과 텍스트를 가운데 정렬 */
-  justify-content: center; /* 수직 정렬 */
-  margin: 15px 0;
-  cursor: pointer;
+  flex-direction: column;
 }
 
-.icon-button {
-  background: none;
-  border: none;
-  color: #6c757d;
-  display: flex;
-  flex-direction: column; /* 수직 정렬을 위해 column으로 변경 */
-  align-items: center; /* 아이콘과 텍스트를 가운데 정렬 */
-  width: 100%;
-  padding-top: 10px;
-  padding-bottom: 15px;
-  cursor: pointer;
-  text-align: center; /* 텍스트를 가운데 정렬 */
+.nav-item {
+  padding-top: 12px; /* 상하 간격 조정 */
+  padding-bottom: 12px; /* 상하 간격 조정 */
 }
 
-.icon-button:hover {
-  background-color: #e9ecef;
-  border-radius: 5px;
+.font-weight-bold {
+  font-weight: bold; /* 볼드체 적용 */
 }
 
-.ms {
-  margin-top: 8px; /* 아이콘과 텍스트 사이 간격 */
-  font-size: 15px;
-  text-align: center; /* 텍스트를 가운데 정렬 */
+.pl-3 {
+  padding-left: 1rem; /* Project files와 Codes 들여쓰기 */
+}
+
+.ml-3 {
+  margin-left: 1rem; /* 하위 메뉴의 들여쓰기 */
 }

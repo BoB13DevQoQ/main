@@ -35,22 +35,3 @@ td {
 .ls_high_background {
   background-color: #D4EAFA;
 }
-
-.input-section {
-  background-color: #7EAFED;
-  border-radius: 20px;
-  margin: 10px 30px; /* 가로 패딩을 30px로 늘림 */
-  width: 200px; /* 너비를 컨텐츠에 맞게 자동으로 */
-}
-
-/* 버튼 색상 변경 */
-.start-fuzzer-btn {
-  background-color: #7EAFED;
-  border-color: #7EAFED;
-  color: white;
-}
-
-.start-fuzzer-btn:hover {
-  background-color: #6A9BDB;
-  border-color: #6A9BDB;
-}

@@ -1,13 +1,24 @@
-/* src/components/ResultPage.css */
-.result-page {
-    height: 100vh;
-    text-align: center;
-    color: #6c757d;
-  }
-  
-  .code-container {
-    max-width: 80%;
-    margin: 20px auto;
-    text-align: left;
-  }
-  
+/* Report.css */
+.container {
+  max-width: 1000px;
+}
+
+.bg-info {
+  background-color: #7EAFED !important; /* 배경색을 이미지와 맞춤 */
+}
+
+.p-3 {
+  padding: 20px; /* 패딩을 더 추가하여 여백을 줌 */
+}
+
+.fs-4, .fs-5 {
+  font-size: 1.25rem; /* 텍스트 크기 조정 */
+}
+
+.fs-2 {
+  font-size: 2rem; /* 다운로드 아이콘 크기 */
+}
+
+.me-2 {
+  margin-right: 0.5rem; /* 오른쪽 마진 */
+}

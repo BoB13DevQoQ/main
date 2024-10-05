@@ -1,49 +1,104 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import './FileUpload.css';
+import { FaCheck } from "react-icons/fa";
 
-function FileUpload({ onUploadComplete, setPage }) {
-  const [dockerfile, setDockerfile] = useState(null);
-  const [mainCFile, setMainCFile] = useState(null);
-  const [dockerfileContent, setDockerfileContent] = useState('');
-  const [mainCFileContent, setMainCFileContent] = useState('');
+const FileUpload = () => {
+  const [dockerFileUploaded, setDockerFileUploaded] = useState(false);
+  const [targetCodeUploaded, setTargetCodeUploaded] = useState(false);
+  const [buildFilesUploaded, setBuildFilesUploaded] = useState(false);
+  const [fileInfo, setFileInfo] = useState({
+    dockerfile: { codes: "-", language: "-", size: "-" },
+    targetCode: { codes: "-", language: "-", size: "-" },
+    buildFiles: { codes: "-", language: "-", size: "-" }
+  });
 
-  // 파일 선택 처리
-  const handleDockerfileChange = (event) => {
-    const file = event.target.files[0];
-    setDockerfile(file);
-    readFileContent(file, setDockerfileContent); // Dockerfile 내용을 읽어서 출력
-  };
+  const dockerfileInputRef = useRef(null);
+  const targetCodeInputRef = useRef(null);
+  const buildFilesInputRef = useRef(null);
 
-  const handleMainCChange = (event) => {
-    const file = event.target.files[0];
-    setMainCFile(file);
-    readFileContent(file, setMainCFileContent); // main.c 내용을 읽어서 출력
-  };
-
-  // 파일 내용을 읽어서 state에 저장
-  const readFileContent = (file, setContent) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setContent(e.target.result); // 파일 내용 저장
+  const getLanguageByExtension = (extension) => {
+    const languageMap = {
+      '.c': 'C',
+      '.cpp': 'C++',
+      '.py': 'Python',
+      '.java': 'Java',
+      '.js': 'JavaScript',
+      '.ts': 'TypeScript',
+      '.go': 'Go',
+      '.rs': 'Rust',
     };
-    reader.readAsText(file);
+    return languageMap[extension] || 'Unknown';
   };
 
-  // 파일 업로드 처리
-  const handleFileUpload = async () => {
-    // 두 개의 파일이 모두 선택되었는지 확인
-    if (!dockerfile || !mainCFile) {
-      alert("Dockerfile과 main.c 두 개의 파일을 업로드해야 합니다.");
+  const handleFileUpload = (fileType) => async (event) => {
+    const files = event.target.files;
+    let totalSize = 0;
+    let codesCount = 0;
+    let languages = new Set();
+
+    Array.from(files).forEach((file) => {
+      const extension = file.name.slice(file.name.lastIndexOf('.')).toLowerCase();
+      const language = getLanguageByExtension(extension);
+      languages.add(language);
+      codesCount++;
+      totalSize += file.size;
+    });
+
+    const fileSizeMB = (totalSize / (1024 * 1024)).toFixed(2);
+
+    const languageString = Array.from(languages).join(', ');
+
+    if (fileType === 'dockerfile') {
+      setFileInfo(prev => ({
+        ...prev,
+        dockerfile: {
+          codes: codesCount,
+          language: languageString,
+          size: `${fileSizeMB} MB`
+        }
+      }));
+      setDockerFileUploaded(true);
+    } else if (fileType === 'targetCode') {
+      setFileInfo(prev => ({
+        ...prev,
+        targetCode: {
+          codes: codesCount,
+          language: languageString,
+          size: `${fileSizeMB} MB`
+        }
+      }));
+      setTargetCodeUploaded(true);
+    } else if (fileType === 'buildFiles') {
+      setFileInfo(prev => ({
+        ...prev,
+        buildFiles: {
+          codes: codesCount,
+          language: languageString,
+          size: `${fileSizeMB} MB`
+        }
+      }));
+      setBuildFilesUploaded(true);
+    }
+  };
+
+  const handleStartFuzzer = async () => {
+    if (!dockerFileUploaded || !targetCodeUploaded) {
+      alert('Dockerfile과 Target Code가 모두 업로드되어야 합니다.');
       return;
     }
 
     const formData = new FormData();
-    formData.append('files', dockerfile, 'Dockerfile'); // Dockerfile 명시적으로 추가
-    formData.append('files', mainCFile, 'main.c');      // main.c 명시적으로 추가
 
-    // FormData 내용 확인
-    for (let pair of formData.entries()) {
-      console.log(pair[0] + ', ' + pair[1]);
+    if (dockerfileInputRef.current && dockerfileInputRef.current.files[0]) {
+      formData.append('dockerfile', dockerfileInputRef.current.files[0]);
+    }
+    if (targetCodeInputRef.current && targetCodeInputRef.current.files[0]) {
+      formData.append('targetCode', targetCodeInputRef.current.files[0]);
+    }
+    if (buildFilesInputRef.current && buildFilesInputRef.current.files.length > 0) {
+      Array.from(buildFilesInputRef.current.files).forEach((file) => {
+        formData.append('buildFiles', file);
+      });
     }
 
     try {
@@ -52,54 +107,122 @@ function FileUpload({ onUploadComplete, setPage }) {
         body: formData,
       });
 
-      const data = await response.json();
-      if (response.ok) {
-        onUploadComplete(data); // 업로드 완료 후 정보 전달
-        setPage('result'); // ResultPage로 이동
-      } else {
-        alert(`업로드 중 오류가 발생했습니다: ${data.error}`);
+      if (!response.ok) {
+        throw new Error('Fuzzer 시작 실패');
       }
+
+      const result = await response.json();
+      alert('Fuzzer 실행 시작!');
+      console.log(result);
     } catch (error) {
-      console.error("파일 업로드 중 오류가 발생했습니다:", error);
+      console.error('Fuzzer 시작 오류:', error);
     }
   };
 
   return (
-    <div className="file-upload-container">
-      <h3>파일 업로드</h3>
-      <div className="file-upload-section">
-        <label htmlFor="dockerfile">Dockerfile 업로드</label>
-        <input
-          type="file"
-          id="dockerfile"
-          onChange={handleDockerfileChange}
-        />
-        {dockerfileContent && (
-          <div className="code-block">
-            <h4>Dockerfile 내용:</h4>
-            <pre>{dockerfileContent}</pre>
-          </div>
-        )}
+    <div className="dashboard p-4 flex-grow-1 gap-3">
+      <div className="row align-items-center mb-3">
+        <h2 className="col-6">File Upload</h2>
+        <div className="input-section d-flex align-items-center px-4 py-3 rounded-5 col mx-5">
+          <p className="mb-0 me-2 fs-5 text-white">Project Name:</p>
+          <input type="text" className="form-control rounded-2" />
+        </div>
       </div>
 
-      <div className="file-upload-section">
-        <label htmlFor="mainC">소스 코드 (main.c) 업로드</label>
-        <input
-          type="file"
-          id="mainC"
-          onChange={handleMainCChange}
-        />
-        {mainCFileContent && (
-          <div className="code-block">
-            <h4>main.c 파일 내용:</h4>
-            <pre>{mainCFileContent}</pre>
-          </div>
-        )}
-      </div>
+      <table className="table table-striped border rounded-3 rounded-bottom-0">
+        <thead className="custom-thead bg-light rounded-3 py-3">
+          <tr>
+            <th className="text-center py-3 fs-5">Required files</th>
+            <th className="text-center py-3 fs-5">Codes</th>
+            <th className="text-center py-3 fs-5">Language</th>
+            <th className="text-center py-3 fs-5">Size</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr className="border-bottom">
+            <td className="text-center py-3 fs-5">Dockerfile</td>
+            <td className="text-center py-3 fs-5">{fileInfo.dockerfile.codes}</td>
+            <td className="text-center py-3 fs-5">{fileInfo.dockerfile.language}</td>
+            <td className="text-center py-3 fs-5">{fileInfo.dockerfile.size}</td>
+            <td className="text-center py-3 fs-5">
+              {dockerFileUploaded ? (
+                <button className="btn btn-success btn-sm rounded-4">
+                  <FaCheck />
+                </button>
+              ) : (
+                <>
+                  <input
+                    type="file"
+                    id="dockerfile-upload"
+                    ref={dockerfileInputRef}
+                    onChange={handleFileUpload('dockerfile')}
+                    style={{ display: 'none' }}
+                  />
+                  <label htmlFor="dockerfile-upload" className="btn btn-secondary btn-sm rounded-4">Upload</label>
+                </>
+              )}
+            </td>
+          </tr>
+          <tr className="border-bottom">
+            <td className="text-center py-3 fs-5">Target Code</td>
+            <td className="text-center py-3 fs-5">{fileInfo.targetCode.codes}</td>
+            <td className="text-center py-3 fs-5">{fileInfo.targetCode.language}</td>
+            <td className="text-center py-3 fs-5">{fileInfo.targetCode.size}</td>
+            <td className="text-center py-3 fs-5">
+              {targetCodeUploaded ? (
+                <button className="btn btn-success btn-sm rounded-4">
+                  <FaCheck />
+                </button>
+              ) : (
+                <>
+                  <input
+                    type="file"
+                    id="targetcode-upload"
+                    ref={targetCodeInputRef}
+                    onChange={handleFileUpload('targetCode')}
+                    style={{ display: 'none' }}
+                  />
+                  <label htmlFor="targetcode-upload" className="btn btn-secondary btn-sm rounded-4">Upload</label>
+                </>
+              )}
+            </td>
+          </tr>
+          <tr className="border-bottom">
+            <td className="text-center py-3 fs-5">Build Files</td>
+            <td className="text-center py-3 fs-5">{fileInfo.buildFiles.codes}</td>
+            <td className="text-center py-3 fs-5">{fileInfo.buildFiles.language}</td>
+            <td className="text-center py-3 fs-5">{fileInfo.buildFiles.size}</td>
+            <td className="text-center py-3 fs-5">
+              {buildFilesUploaded ? (
+                <button className="btn btn-success btn-sm rounded-4">
+                  <FaCheck />
+                </button>
+              ) : (
+                <>
+                  <input
+                    type="file"
+                    id="buildfiles-upload"
+                    ref={buildFilesInputRef}
+                    onChange={handleFileUpload('buildFiles')}
+                    webkitdirectory
+                    style={{ display: 'none' }}
+                  />
+                  <label htmlFor="buildfiles-upload" className="btn btn-secondary btn-sm rounded-4">Upload</label>
+                </>
+              )}
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
-      <button className="btn btn-primary mt-3" onClick={handleFileUpload}>파일 업로드</button>
+      <div className="d-flex justify-content-center mt-4">
+        <button className="btn start-fuzzer-btn fs-3 rounded-5" onClick={handleStartFuzzer}>
+          Start Fuzzer
+        </button>
+      </div>
     </div>
   );
-}
+};
 
 export default FileUpload;

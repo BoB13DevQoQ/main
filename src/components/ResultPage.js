@@ -1,41 +1,73 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import './ResultPage.css';
+import { FaDownload } from "react-icons/fa";
 
-function ResultPage({ uploadInfo }) {
-  const [codeString, setCodeString] = useState('');
-  const [log, setLog] = useState(''); // Docker 로그 저장
-
-  useEffect(() => {
-    if (uploadInfo && uploadInfo.files) {
-      // 서버에서 업로드된 파일의 내용을 fetch로 가져옴
-      const filePath = `${uploadInfo.directory}/${uploadInfo.files[0]}`; // 첫 번째 파일 경로 가져오기
-      fetch(`http://localhost:5000/file-content?path=${filePath}`)
-        .then((response) => response.text())
-        .then((data) => setCodeString(data))
-        .catch((error) => console.error("파일 내용을 불러오는 중 오류 발생:", error));
-
-      // Docker 실행 로그 가져오기
-      setLog(uploadInfo.log);
-    }
-  }, [uploadInfo]);
-
+const ResultPage = () => {
   return (
-    <div className="result-page p-3">
-      <h4>Uploaded File Code</h4>
-      <div className="code-container">
-        {codeString ? (
-          <pre>{codeString}</pre>
-        ) : (
-          <p>파일을 불러올 수 없습니다. 파일을 업로드하세요.</p>
-        )}
+    <div className="container text-center mt-5">
+      <h2 className="mb-4">Report</h2>
+
+      {/* 상단 Project Name */}
+      <div className="row justify-content-center mb-3">
+        <div className="col-6">
+          <div className="p-3 rounded-4 bg-info text-white">
+            <h5>Project Name</h5>
+            <p className="fs-4 mb-0">My_Project 1</p>
+          </div>
+        </div>
       </div>
 
-      <h4>Docker Container Log</h4>
-      <div className="log-container">
-        <pre>{log}</pre> {/* Docker 실행 로그 표시 */}
+      {/* 중간 2줄 데이터 */}
+      <div className="row m-5">
+        <div className="col-4">
+          <div className="p-3 rounded-4 bg-info text-white">
+            <h6>Code Coverage</h6>
+            <p className="fs-5 mb-0">25/30 (83.33%)</p>
+          </div>
+        </div>
+        <div className="col-4">
+          <div className="p-3 rounded-4 bg-info text-white">
+            <h6>Function gadget</h6>
+            <p className="fs-5 mb-0">4</p>
+          </div>
+        </div>
+        <div className="col-4">
+          <div className="p-3 rounded-4 bg-info text-white">
+            <h6>API</h6>
+            <p className="fs-5 mb-0">2</p>
+          </div>
+        </div>
+      </div>
+
+      {/* 하단 2줄 데이터 */}
+      <div className="row m-5">
+        <div className="col-4">
+          <div className="p-3 rounded-4 bg-info text-white px-5">
+            <h6>Issue</h6>
+            <p className="fs-5 mb-0">1</p>
+          </div>
+        </div>
+        <div className="col-4">
+          <div className="p-3 rounded-4 bg-info text-white">
+            <h6>Risk level</h6>
+            <p className="fs-5 mb-0">Low</p>
+          </div>
+        </div>
+        <div className="col-4">
+          <div className="p-3 rounded-4 bg-info text-white">
+            <h6>Test Code</h6>
+            <p className="fs-5 mb-0">21</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Detail Report Download */}
+      <div className="d-flex justify-content-center align-items-center mt-5">
+        <h5 className="me-2">Detail Report:</h5>
+        <FaDownload className="fs-2 text-secondary" />
       </div>
     </div>
   );
-}
+};
 
 export default ResultPage;
