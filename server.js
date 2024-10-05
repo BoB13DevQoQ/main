@@ -50,8 +50,6 @@ app.post('/upload', (req, res) => {
       return res.status(400).json({ error: err.message });
     }
 
-    console.log(req.files);
-
     const files = req.files;
     if (!files || files.length === 0) {
       return res.status(400).json({ error: '파일이 업로드되지 않았습니다.' });

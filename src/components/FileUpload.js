@@ -2,30 +2,60 @@ import React, { useState, useRef } from 'react';
 import './FileUpload.css';
 import { FaCheck } from "react-icons/fa";
 
-const FileUpload = () => {
-  const [dockerFileUploaded, setDockerFileUploaded] = useState(false);
-  const [targetCodeUploaded, setTargetCodeUploaded] = useState(false);
-  const [buildFilesUploaded, setBuildFilesUploaded] = useState(false);
-  const [fileInfo, setFileInfo] = useState({
-    dockerfile: { codes: "-", language: "-", size: "-" },
-    targetCode: { codes: "-", language: "-", size: "-" },
-    buildFiles: { codes: "-", language: "-", size: "-" }
-  });
-
+function FileUpload({ onUploadComplete, setPage }) {
+  const [dockerfile, setDockerfile] = useState(null);
+  const [mainCFile, setMainCFile] = useState(null);
+  const [otherFiles, setOtherFiles] = useState([]);
+  const [dockerfileContent, setDockerfileContent] = useState('');
+  const [mainCFileContent, setMainCFileContent] = useState('');
+  const [uploadedItems, setUploadedItems] = useState([]);
   const dockerfileInputRef = useRef(null);
   const targetCodeInputRef = useRef(null);
   const buildFilesInputRef = useRef(null);
+  const [fileInfo, setFileInfo] = useState({
+    dockerfile: { codes: 0, language: '', size: '' },
+    targetCode: { codes: 0, language: '', size: '' },
+    buildFiles: { codes: 0, language: '', size: '' }
+  });
+  const [dockerFileUploaded, setDockerFileUploaded] = useState(false);
+  const [targetCodeUploaded, setTargetCodeUploaded] = useState(false);
+  const [buildFilesUploaded, setBuildFilesUploaded] = useState(false);
+
+  const handleDockerfileChange = (event) => {
+    const file = event.target.files[0];
+    setDockerfile(file);
+    readFileContent(file, setDockerfileContent);
+  };
+
+  const handleMainCChange = (event) => {
+    const file = event.target.files[0];
+    setMainCFile(file);
+    readFileContent(file, setMainCFileContent);
+  };
+
+  const handleOtherFilesChange = (event) => {
+    const files = Array.from(event.target.files);
+    setOtherFiles(files);
+
+    const fileList = files.map(file => file.webkitRelativePath || file.name);
+    setUploadedItems(fileList);
+  };
+
+  const readFileContent = (file, setContent) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setContent(e.target.result);
+    };
+    reader.readAsText(file);
+  };
 
   const getLanguageByExtension = (extension) => {
     const languageMap = {
       '.c': 'C',
       '.cpp': 'C++',
       '.py': 'Python',
-      '.java': 'Java',
       '.js': 'JavaScript',
-      '.ts': 'TypeScript',
-      '.go': 'Go',
-      '.rs': 'Rust',
+      '.dockerfile': 'Dockerfile'
     };
     return languageMap[extension] || 'Unknown';
   };
@@ -45,7 +75,6 @@ const FileUpload = () => {
     });
 
     const fileSizeMB = (totalSize / (1024 * 1024)).toFixed(2);
-
     const languageString = Array.from(languages).join(', ');
 
     if (fileType === 'dockerfile') {
@@ -88,18 +117,9 @@ const FileUpload = () => {
     }
 
     const formData = new FormData();
-
-    if (dockerfileInputRef.current && dockerfileInputRef.current.files[0]) {
-      formData.append('dockerfile', dockerfileInputRef.current.files[0]);
-    }
-    if (targetCodeInputRef.current && targetCodeInputRef.current.files[0]) {
-      formData.append('targetCode', targetCodeInputRef.current.files[0]);
-    }
-    if (buildFilesInputRef.current && buildFilesInputRef.current.files.length > 0) {
-      Array.from(buildFilesInputRef.current.files).forEach((file) => {
-        formData.append('buildFiles', file);
-      });
-    }
+    if (dockerfile) formData.append('dockerfile', dockerfile);
+    if (mainCFile) formData.append('targetCode', mainCFile);
+    otherFiles.forEach(file => formData.append('files', file));
 
     try {
       const response = await fetch('http://localhost:5000/upload', {
@@ -107,10 +127,7 @@ const FileUpload = () => {
         body: formData,
       });
 
-      if (!response.ok) {
-        throw new Error('Fuzzer 시작 실패');
-      }
-
+      if (!response.ok) throw new Error('Fuzzer 시작 실패');
       const result = await response.json();
       alert('Fuzzer 실행 시작!');
       console.log(result);
@@ -205,7 +222,6 @@ const FileUpload = () => {
                     id="buildfiles-upload"
                     ref={buildFilesInputRef}
                     onChange={handleFileUpload('buildFiles')}
-                    webkitdirectory
                     style={{ display: 'none' }}
                   />
                   <label htmlFor="buildfiles-upload" className="btn btn-secondary btn-sm rounded-4">Upload</label>
@@ -223,6 +239,6 @@ const FileUpload = () => {
       </div>
     </div>
   );
-};
+}
 
 export default FileUpload;
