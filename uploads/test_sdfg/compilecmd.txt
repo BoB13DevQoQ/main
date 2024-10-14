@@ -1,2 +1,0 @@
-make clean
-make CXX=$CXX CC=$CC CXXFLAGS="$CXXFLAGS -fPIC"
