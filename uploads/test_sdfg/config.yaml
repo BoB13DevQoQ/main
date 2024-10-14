@@ -1,0 +1,4 @@
+project_name: target_project
+static_lib_name: libtarget.a
+dyn_lib_name: libtarget.so
+ban:

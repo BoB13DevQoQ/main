@@ -1,60 +1,131 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { Bar } from 'react-chartjs-2';
 import './ResultPage.css';
 import { FaDownload } from "react-icons/fa";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+} from 'chart.js';
 
-function ResultPage({ uploadInfo }) {
-  const [codeString, setCodeString] = useState(''); // test_target_code.c 파일 내용
-  const [log, setLog] = useState(''); // Docker 로그 저장
+// 필요한 스케일과 요소들을 Chart.js에 등록
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+
+const ResultPage = ({ userName, projectName }) => {
+  const [chartData, setChartData] = useState({
+    labels: ['Region', 'Function', 'Line', 'Branch'],
+    datasets: [{
+      label: 'Code Coverage',
+      data: [0, 0, 0, 0], // 초기값은 0
+      backgroundColor: ['#4E79A6', '#F28E2C', '#E15659', '#76B7B1'], // 막대 각각의 색상
+      borderColor: ['#4E79A6', '#F28E2C', '#E15659', '#76B7B1'],
+      borderWidth: 1,
+    }]
+  });
+  
+  const [issue, setIssue] = useState(0);
+  const [riskLevel, setRiskLevel] = useState('Low');
 
   useEffect(() => {
-    // uploadInfo가 있고 파일들이 존재하는지 확인
-    if (uploadInfo && uploadInfo.uploadInfo.directory && uploadInfo.uploadInfo.files) {
-      // test_target_code.c 파일이 있는지 확인
-      const testTargetFile = uploadInfo.uploadInfo.files.find(file => file === 'test_target_code.c');
-      
-      console.log("응답 수신 완료 : ", uploadInfo);
+    // 서버에서 데이터 불러오기
+    fetch(`http://localhost:8000/report?userName=${userName}&projectName=${projectName}`)
+      .then(response => response.json())
+      .then(data => {
+        const newChartData = {
+          labels: ['Region', 'Function', 'Line', 'Branch'],
+          datasets: [{
+            label: '', // 라벨을 빈 값으로 설정 (범례 숨김을 위해)
+            data: [data.report.Region, data.report.Function, data.report.Line, data.report.Branch],
+            backgroundColor: ['#4E79A6', '#F28E2C', '#E15659', '#76B7B1'], // 막대 각각의 색상
+            borderColor: ['#4E79A6', '#F28E2C', '#E15659', '#76B7B1'],
+            borderWidth: 1,
+          }]
+        };
+        setChartData(newChartData);
+        setIssue(data.dashboard.Issue); // Issue 데이터 설정
+        setRiskLevel(data.dashboard.Risk_level); // Risk Level 데이터 설정
+      })
+      .catch(error => console.error('Error fetching chart data:', error));
+  }, [userName, projectName]);
 
-      if (testTargetFile) {
-        // 파일 경로 설정
-        const filePath = `${uploadInfo.uploadInfo.directory}/${testTargetFile}`;
-        
-        // 서버에서 파일 내용을 가져오는 fetch 호출
-        fetch(`http://localhost:5000/file-content?path=${filePath}`)
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error('네트워크 응답이 올바르지 않습니다.');
-            }
-            return response.text();
-          })
-          .then((data) => {
-            console.log('파일 내용 가져오기 성공: ', data); // 가져온 파일 내용 로그로 출력
-            setCodeString(data); // 파일 내용을 상태로 저장
-          })
-          .catch((error) => console.error("파일 내용을 불러오는 중 오류 발생:", error));
-      } else {
-        console.error('test_target_code.c 파일을 찾을 수 없습니다.');
+  const options = {
+    scales: {
+      y: {
+        beginAtZero: true,
+        max: 100,
+        ticks: {
+          stepSize: 25,
+          callback: (value) => `${value}%`,
+        },
+        grid: {
+          color: '#e0e0e0',
+        }
       }
-
-      // Docker 실행 로그 가져오기
-      setLog(uploadInfo.uploadInfo.log || '로그가 없습니다.');
+    },
+    plugins: {
+      title: {
+        display: true, // 차트 제목 표시
+        text: 'Code Coverage', // 차트 제목 설정
+        font: {
+          size: 24
+        },
+        padding: {
+          top: 10,
+          bottom: 30
+        }
+      },
+      legend: {
+        display: false, // 범례 숨기기
+      }
     }
-  }, [uploadInfo]);
+  };
 
   return (
-    <div className="result-page p-3">
-      <h4>test_target_code.c 파일 내용</h4>
-      <div className="code-container">
-        {codeString ? (
-          <pre>{codeString}</pre>
-        ) : (
-          <p>파일을 불러올 수 없습니다. 파일을 업로드하세요.</p>
-        )}
+    <div className="container text-center mt-5">
+      <h2 className="mb-4">Report</h2>
+
+      {/* 상단 Project Name */}
+      <div className="row justify-content-center mb-3">
+        <div className="col-6">
+          <div className="p-3 rounded-4 bg-info text-white">
+            <h5>Project Name</h5>
+            <p className="fs-4 mb-0">{projectName}</p>
+          </div>
+        </div>
       </div>
 
-      <h4>Docker 컨테이너 로그</h4>
-      <div className="log-container">
-        <pre>{log}</pre> {/* Docker 실행 로그 표시 */}
+      {/* 차트 */}
+      <div className="row justify-content-center">
+        <div className="col-8">
+          <Bar data={chartData} options={options} />
+        </div>
       </div>
+
+      {/* 하단 2줄 데이터 */}
+      <div className="row m-5">
+        <div className="col">
+          <div className="p-3 rounded-4 bg-info text-white px-5">
+            <h3>Issue</h3>
+            <p className="fs-3 mb-0">{issue}</p> {/* DB에서 불러온 값 표시 */}
+          </div>
+        </div>
+        <div className="col">
+          <div className="p-3 rounded-4 bg-info text-white">
+            <h3>Risk level</h3>
+            <p className="fs-3 mb-0">{riskLevel}</p> {/* DB에서 불러온 값 표시 */}
+          </div>
+        </div>
+      </div>
+
+      {/* Detail Report Download 
+      <div className="d-flex justify-content-center align-items-center mt-5">
+        <h5 className="me-2">Detail Report:</h5>
+        <FaDownload className="fs-2 text-secondary" />
+      </div>*/}
     </div>
   );
 };

@@ -1,42 +1,90 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 import { IoMdSearch } from "react-icons/io";
-import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { FaChevronLeft, FaChevronRight, FaSpinner } from "react-icons/fa";  // FaSpinner 아이콘 추가
 
-const Dashboard = () => {
-  // 프로젝트 리스트 데이터
-  const projects = [
-    { name: "My_Project 1", codes: 10, language: "C++", issue: 0, risk: "Low" },
-    { name: "My_Project 2", codes: 8, language: "C", issue: 1, risk: "Low" },
-    { name: "My_Project 3", codes: 15, language: "C, C++", issue: 0, risk: "Low" },
-    { name: "My_Project 4", codes: 12, language: "C++", issue: 0, risk: "Low" },
-    { name: "My_Project 5", codes: 20, language: "C", issue: 1, risk: "Low" },
-    { name: "My_Project 6", codes: 12, language: "C, C++", issue: 0, risk: "Low" },
-    { name: "My_Project 7", codes: 10, language: "C", issue: 2, risk: "Low" },
-    { name: "My_Project 8", codes: 25, language: "C++", issue: 2, risk: "Low" },
-    // 더 많은 프로젝트가 추가될 수 있음
-  ];
+const Dashboard = ({ userName, setprojectName }) => {
+  const [projects, setProjects] = useState([]);
+  const [summary, setSummary] = useState({ totalProjects: 0, totalFiles: 0, totalIssues: 0 });
+  const [currentPage, setCurrentPage] = useState(0);
+  const [maxPage, setMaxPage] = useState(0);
+  const navigate = useNavigate();
 
-  // 페이징 상태 관리
-  const [currentPage, setCurrentPage] = useState(1);
-  const projectsPerPage = 6; // 한 페이지에 보여줄 프로젝트 수
+  // Dashboard 데이터 API 호출 함수
+  const fetchDashboardData = () => {
+    fetch(`http://localhost:8000/dashboard/?page=${currentPage}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+        'Content-Type': 'application/json'
+      },
+    })
+    .then(response => response.json())
+    .then(data => {
+      setSummary({
+        totalProjects: data.summary.totalProjects,
+        totalFiles: data.summary.totalFiles,
+        totalIssues: data.summary.totalIssues,
+      });
+      setProjects(data.projects);
+      setMaxPage(Math.ceil(data.summary.totalProjects / 6));
+    })
+    .catch(error => console.error('Error fetching dashboard data:', error));
+  };
 
-  // 현재 페이지의 프로젝트 계산
-  const indexOfLastProject = currentPage * projectsPerPage;
-  const indexOfFirstProject = indexOfLastProject - projectsPerPage;
-  const currentProjects = projects.slice(indexOfFirstProject, indexOfLastProject);
+  // 상태 변화에 따른 데이터 새로 가져오기
+  useEffect(() => {
+    if (userName) {
+      fetchDashboardData();
+    }
+  }, [userName, currentPage]);
 
-  // 페이지 변경 핸들러
+  // WebSocket으로 실시간 업데이트 감지
+  useEffect(() => {
+    const ws = new WebSocket('ws://localhost:8000/ws/dashboard');
+
+    ws.onmessage = (event) => {
+      const message = event.data;
+      if (message === "Dashboard updated") {
+        fetchDashboardData();
+      }
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, []);
+
   const nextPage = () => {
-    if (currentPage < Math.ceil(projects.length / projectsPerPage)) {
+    if (currentPage < maxPage - 1) {
       setCurrentPage(currentPage + 1);
     }
   };
 
   const prevPage = () => {
-    if (currentPage > 1) {
+    if (currentPage > 0) {
       setCurrentPage(currentPage - 1);
     }
+  };
+
+  const getRiskLevelStyle = (riskLevel) => {
+    switch (riskLevel) {
+      case 'Low':
+        return { color: '#0000FF' }; 
+      case 'Middle':
+        return { color: '#FFA500' }; 
+      case 'High':
+        return { color: '#FF0000' };
+      default:
+        return { color: '#000000' };
+    }
+  };
+
+  // Result 페이지로 이동하는 함수
+  const goToResultPage = (projectName) => {
+    setprojectName(projectName);
+    navigate(`/result`);
   };
 
   return (
@@ -48,15 +96,15 @@ const Dashboard = () => {
           <div className="card text-center stat-background text-white rounded-5">
             <div className="card-body">
               <h5 className="card-title fs-3">Projects</h5>
-              <p className="card-text fs-3">12</p>
+              <p className="card-text fs-3">{summary.totalProjects}</p>
             </div>
           </div>
         </div>
         <div className="col-md-4">
           <div className="card text-center stat-background text-white rounded-5">
             <div className="card-body">
-              <h5 className="card-title fs-3">Codes</h5>
-              <p className="card-text fs-3">105</p>
+              <h5 className="card-title fs-3">Files</h5>
+              <p className="card-text fs-3">{summary.totalFiles}</p>
             </div>
           </div>
         </div>
@@ -64,7 +112,7 @@ const Dashboard = () => {
           <div className="card text-center stat-background text-white rounded-5">
             <div className="card-body">
               <h5 className="card-title fs-3">Total Issue</h5>
-              <p className="card-text fs-3">6</p>
+              <p className="card-text fs-3">{summary.totalIssues}</p>
             </div>
           </div>
         </div>
@@ -76,38 +124,49 @@ const Dashboard = () => {
         <input type="text" className="form-control rounded-2" placeholder="Search..." />
       </div>
 
-      {/* 리스트 페이징 테이블 */}
       <table className="table table-striped border rounded-3 rounded-bottom-0">
         <thead className="custom-thead bg-light rounded-3">
           <tr>
             <th className="text-center fs-5">Project</th>
-            <th className="text-center fs-5">Codes</th>
+            <th className="text-center fs-5">Files</th>
             <th className="text-center fs-5">Language</th>
             <th className="text-center fs-5">Issue</th>
             <th className="text-center fs-5">Risk level</th>
-            <th></th>
+            <th className="text-center fs-5"></th>
           </tr>
         </thead>
         <tbody>
-          {currentProjects.map((project, index) => (
+          {projects.map((project, index) => (
             <tr key={index} className="border-bottom">
-              <td className="text-center py-3 fs-5">{project.name}</td>
-              <td className="text-center py-3 fs-5">{project.codes}</td>
-              <td className="text-center py-3 fs-5">{project.language}</td>
-              <td className="text-center py-3 fs-5">{project.issue}</td>
-              <td className="text-center py-3 text-primary fs-5">{project.risk}</td>
+              <td className="text-center py-3 fs-5">{project.Project}</td>
+              <td className="text-center py-3 fs-5">{project.Files}</td>
+              <td className="text-center py-3 fs-5">{project.Language}</td>
+              <td className="text-center py-3 fs-5">{project.Issue}</td>
+              <td className="text-center py-3 fs-5" style={getRiskLevelStyle(project.Risk_level)}>
+                {project.Risk_level}
+              </td>
               <td className="text-center py-3 fs-5">
-                <button className="btn btn-secondary btn-sm rounded-4">more</button>
+                {project.Risk_level === "N/A" ? (
+                  <button className="btn btn-warning btn-sm rounded-4" disabled>
+                    Fuzzing... <FaSpinner className="ms-2 spinner" />
+                  </button>
+                ) : (
+                  <button 
+                    className="btn btn-secondary btn-sm rounded-4" 
+                    onClick={() => goToResultPage(project.Project)}
+                  >
+                    more
+                  </button>
+                )}
               </td>
             </tr>
           ))}
         </tbody>
       </table>
 
-      {/* 페이지네이션 화살표 */}
       <div className="d-flex justify-content-center align-items-center mt-3">
         <FaChevronLeft className="fs-3 cursor-pointer" onClick={prevPage} />
-        <span className="mx-3 fs-4">{currentPage}</span>
+        <span className="mx-3 fs-4">{currentPage + 1}</span>
         <FaChevronRight className="fs-3 cursor-pointer" onClick={nextPage} />
       </div>
     </div>

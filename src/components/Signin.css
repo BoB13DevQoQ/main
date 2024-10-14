@@ -1,0 +1,26 @@
+
+.custom-thead {
+    border: none; /* 각 셀에 별도의 윤곽선을 없애기 */
+    background-color: #D4EAFA; /* 원하는 배경색 설정 */
+  }
+  
+  .form {
+    border-collapse: separate; /* 테두리와 셀 분리 */
+    border-spacing: 0; /* 셀 간격 제거 */
+    border-radius: 10px; /* 모서리 둥글게 */
+  }
+  
+  /* 버튼 색상 변경 */
+  .signup-btn {
+    background-color: #7EAFED;
+    border-color: #7EAFED;
+    color: white;
+  }
+  
+  a {
+    text-decoration-line: none;
+  /*   text-decoration-line: underline; */
+  /*   text-decoration-line: overline; */
+  /*   text-decoration-line: line-through; */
+  /*   text-decoration-line: underline line-through overline; */
+  }

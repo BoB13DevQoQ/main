@@ -1,30 +1,53 @@
-/* Header.css */
 .header-container {
-  background-color: white;
-  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
 }
 
-/* User Section */
-.user-section {
-  background-color: #d4eafa;
-  border-radius: 20px;
-  margin: 10px 30px; /* 가로 패딩을 30px로 늘림 */
-  width: 200px; /* 너비를 컨텐츠에 맞게 자동으로 */
+.btn-login {
+  background: linear-gradient(135deg, #00c6ff, #0072ff);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.btn-login:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+.btn-logout {
+  background: linear-gradient(135deg, #f85032, #e73827);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.btn-logout:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
 }
 
 .user-icon {
-  font-size: 1.5rem; /* 아이콘 크기 */
+  color: #343a40;
 }
 
-.user-name {
-  font-size: 1.25rem; /* 텍스트 크기 */
+.icon-section .icon {
+  cursor: pointer;
+  transition: color 0.3s ease;
 }
 
-/* Icon Section */
-.icon-section {
-  gap: 20px; /* 아이콘 간격 */
-}
-
-.icon {
-  font-size: 1.75rem; /* 아이콘 크기 */
+.icon-section .icon:hover {
+  color: #007bff;
 }

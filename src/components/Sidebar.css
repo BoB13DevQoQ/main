@@ -23,3 +23,11 @@
 .ml-3 {
   margin-left: 1rem; /* 하위 메뉴의 들여쓰기 */
 }
+
+.no-underline {
+  text-decoration: none;
+}
+
+.no-underline:hover {
+  text-decoration: none; /* hover 상태에서도 밑줄 제거 */
+}
