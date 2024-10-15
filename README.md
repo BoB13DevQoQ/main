@@ -47,5 +47,5 @@ CREATE TABLE IF NOT EXISTS Dashboard(
  Risk_level VARCHAR(6) DEFAULT 'N/A',
  FOREIGN KEY (UserName) REFERENCES Users(username)
 );
-를 입력하여 테이블에 추가
+를 입력하여 테이블 추가
 ```
