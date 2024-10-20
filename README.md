@@ -11,8 +11,9 @@ uvicorn app:app
 ```
 
 DB 서버 구축
-```
+
 Docker-compose.yaml에서 계정 정보 설정
+```
 
 docker-compose up
 
