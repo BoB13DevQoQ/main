@@ -272,10 +272,10 @@ async def run_fuzzer(final_folder, container_name, user_name, project_name):
             f"docker start {container_name}",
             f"docker cp {final_folder}/build.sh {container_name}:/PromptFuzz/data/target_project",
             f"docker cp {final_folder}/config.yaml {container_name}:/PromptFuzz/data/target_project",
-            f"docker cp {final_folder}/test/example_fuzzer.cpp {container_name}:/PromptFuzz/data/target_project",
-            f"docker cp {final_folder}/test/makefile {container_name}:/PromptFuzz/data/target_project",
-            f"docker cp {final_folder}/test/mbr.h {container_name}:/PromptFuzz/data/target_project",
-            f"docker cp {final_folder}/mbr.c {container_name}:/PromptFuzz/data/target_project",
+            f"docker cp {final_folder}/test/example_fuzzer.cpp {container_name}:/PromptFuzz/output/build/target_project/src/target_project",
+            f"docker cp {final_folder}/test/makefile {container_name}:/PromptFuzz/output/build/target_project/src/target_project",
+            f"docker cp {final_folder}/test/mbr.h {container_name}:/PromptFuzz/output/build/target_project/src/target_project",
+            f"docker cp {final_folder}/mbr.c {container_name}:/PromptFuzz/output/build/target_project/src/target_project",
         ]
         # 각 명령어를 문자열로 처리하여 실행
         for cmd in container_generate:
@@ -285,10 +285,11 @@ async def run_fuzzer(final_folder, container_name, user_name, project_name):
         # Docker에서 명령어 실행
         commands = [
             "dos2unix /PromptFuzz/data/target_project/build.sh",
+            "dos2unix /PromptFuzz/data/target_project/makefile",
             "./build.sh",
             "timeout 30m cargo run --bin fuzzer -- target_project -c $(nproc) -r || true",
             "cargo run --bin harness -- target_project fuse-fuzzer",
-            "cargo run --bin harness -- target_project fuzzer",
+            "cargo run --bin harness -- target_project fuzzer-run",
             "cargo run --bin harness -- target_project sanitize-crash",
             "cargo run --bin harness -- target_project coverage collect",
             "cargo run --bin harness -- target_project coverage report"
@@ -301,7 +302,7 @@ async def run_fuzzer(final_folder, container_name, user_name, project_name):
             await process.wait()
 
         # 결과 복사
-        docker_cp_command = f"docker cp {container_name}:/prompt_fuzz/output/zlib/misc {final_folder}"
+        docker_cp_command = f"docker cp {container_name}:/PromptFuzz/output/target_project/misc {final_folder}"
         process = await asyncio.create_subprocess_shell(docker_cp_command)  # 여기서도 수정
         await process.wait()
 

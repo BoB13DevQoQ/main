@@ -101,7 +101,7 @@ def create_build(dependencies_file, environment_file, compile_cmd_file, build_sh
         # build_dict 로직
         build_sh.write("function build_dict() {\n")
         build_sh.write("    echo \"Creating dictionary...\"\n")
-        build_sh.write("    echo \"write=w\" >> ${LIB_BUILD}/fuzzer.dict\n")
+        build_sh.write("    echo \"target_project=\\\"target_project\\\"\" >> ${LIB_BUILD}/fuzzer.dict\n")
         build_sh.write("}\n\n")
 
         build_sh.write("build_all\n")

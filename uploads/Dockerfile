@@ -23,12 +23,10 @@ RUN apt-get install dos2unix
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable && rustup default stable
 
-RUN git clone --depth 1 https://github.com/BoB13DevQoQ/PromptFuzz.git
+RUN git clone https://github.com/BoB13DevQoQ/PromptFuzz.git
 
 ENV OPENAI_API_KEY=
 
-WORKDIR /PromptFuzz/data/
+RUN mkdir -p /PromptFuzz/output/build/target_project/src/target_project
 
-RUN mkdir target_project
-
-WORKDIR /target_project
+RUN mkdir -p /PromptFuzz/data/target_project
